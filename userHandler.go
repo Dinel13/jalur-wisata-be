@@ -19,8 +19,14 @@ type userPayload struct {
 	Password string `json:"password"`
 }
 
-// signupHadler handles the signup request
-func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
+type userResponse struct {
+	Token string `json:"token"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+// userSignup handles the signup request
+func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 	// get the email and password from the body request
 	var payload userPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
@@ -88,23 +94,70 @@ func (app *application) signupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// return the user created with the token
-	type response struct {
-		Token string `json:"token"`
-		Name  string `json:"name"`
-		Email string `json:"email"`
-	}
-
-	resp := response{
+	userCreated := userResponse{
 		Token: string(jwtBytes),
 		Name:  newUser.Name,
 		Email: newUser.Email,
 	}
 
 	// return the user
-	app.writeJSON(w, http.StatusOK, resp, "user")
+	app.writeJSON(w, http.StatusOK, userCreated, "user")
 }
 
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+// userLogin handles the login request
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
+	// get the email and password from the body request
+	var payload userPayload
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		log.Printf("Error decoding payload: %v", err)
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// check if the user already exists
+	existUser, err := app.models.DB.GetUserByEmail(payload.Email)
+	if err != nil {
+		log.Printf("Error getting user: %v", err)
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if existUser == nil {
+		log.Printf("User not found")
+		app.errorJSON(w, errors.New("user not found"), http.StatusForbidden)
+		return
+	}
+
+	// check if the password is correct
+	err = bcrypt.CompareHashAndPassword([]byte(existUser.Password), []byte(payload.Password))
+	if err != nil {
+		log.Printf("Error comparing password: %v", err)
+		app.errorJSON(w, err, http.StatusForbidden)
+		return
+	}
+
+	// create the token
+	var claims jwt.Claims
+	claims.Subject = fmt.Sprint(existUser.ID)
+	claims.Issued = jwt.NewNumericTime(time.Now())
+	claims.NotBefore = jwt.NewNumericTime(time.Now())
+	claims.Expires = jwt.NewNumericTime(time.Now().Add(time.Hour * 24))
+	claims.Issuer = "test"
+	claims.Audiences = []string{"test"}
+
+	jwtBytes, err := claims.HMACSign(jwt.HS256, []byte(app.config.jwt.secret))
+	if err != nil {
+		app.errorJSON(w, errors.New("error signin"))
+		return
+	}
+
+	// return the user logged with the token
+	userLogged := userResponse{
+		Token: string(jwtBytes),
+		Name:  existUser.Name,
+		Email: existUser.Email,
+	}
+
+	// return the user
+	app.writeJSON(w, http.StatusOK, userLogged, "user")
 }
