@@ -11,5 +11,7 @@ func (app *application) routes() http.Handler {
 
 	r.HandlerFunc(http.MethodGet, "/status", app.statusHandler)
 
+	r.HandlerFunc(http.MethodPost, "/v1/signin", app.signupHandler)
+
 	return r
 }
