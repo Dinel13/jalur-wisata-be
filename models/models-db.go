@@ -115,3 +115,41 @@ func (db *DBModel) GetAllUsers() ([]*User, error) {
 
 	return users, nil
 }
+
+// CreateDestiny inserts a new destiny into the database
+func (db *DBModel) CreateDestiny(destiny Destiny) (*Destiny, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	sqlStatement := `INSERT INTO destinies (name, description, rating, image, created_at, updated_at, category)
+							VALUES ($1, $2, $3, $4, $5, $6, $7)
+							RETURNING *`
+
+	row := db.DB.QueryRowContext(ctx, sqlStatement,
+		destiny.Name,
+		destiny.Description,
+		destiny.Rating,
+		destiny.Image,
+		destiny.CreatedAt,
+		destiny.UpdatedAt,
+		destiny.Category,
+	)
+
+	var newDestiny Destiny
+	err := row.Scan(
+		&newDestiny.ID,
+		&newDestiny.Name,
+		&newDestiny.Description,
+		&newDestiny.Rating,
+		&newDestiny.Image,
+		&newDestiny.CreatedAt,
+		&newDestiny.UpdatedAt,
+		&newDestiny.Category,
+	)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &newDestiny, nil
+}

@@ -31,14 +31,14 @@ type User struct {
 
 // Destiny is model for destiny
 type Destiny struct {
-	ID          int        `json:"id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Image       string     `json:"image"`
-	Rating      float64    `json:"rating"`
-	Categories  []Category `json:"categories"`
-	CreatedAt   time.Time  `json:"-"`
-	UpdatedAt   time.Time  `json:"-"`
+	ID          int       `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Image       string    `json:"image"`
+	Rating      float64   `json:"rating"`
+	Category    string    `json:"category"`
+	CreatedAt   time.Time `json:"-"`
+	UpdatedAt   time.Time `json:"-"`
 }
 
 // Category is model for category
