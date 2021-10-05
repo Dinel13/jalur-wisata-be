@@ -13,6 +13,7 @@ import (
 )
 
 type DestinyResponse struct {
+	ID          int     `json:"id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Rating      float64 `json:"rating"`
@@ -88,6 +89,7 @@ func (app *application) createDestinyHandler(w http.ResponseWriter, r *http.Requ
 
 	//return destiny as destinyResponse
 	destinyResponse := DestinyResponse{
+		ID:          newDestiny.ID,
 		Name:        newDestiny.Name,
 		Description: newDestiny.Description,
 		Rating:      newDestiny.Rating,
