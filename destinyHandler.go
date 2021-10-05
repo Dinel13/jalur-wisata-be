@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dinel13/wisata/models"
+	"github.com/julienschmidt/httprouter"
 )
 
 type DestinyResponse struct {
@@ -99,4 +100,22 @@ func (app *application) createDestinyHandler(w http.ResponseWriter, r *http.Requ
 
 	// return the user
 	app.writeJSON(w, http.StatusOK, destinyResponse, "destiny")
+}
+
+// getDestiny is handler for get one destyny by id
+func (app *application) getDestiny(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	id, err := strconv.Atoi(params.ByName("id"))
+	fmt.Println(id)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+	}
+
+	destiny, err := app.models.DB.GetDestiny(id)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+	}
+
+	app.writeJSON(w, http.StatusOK, destiny, "destiny")
 }

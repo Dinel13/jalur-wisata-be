@@ -153,3 +153,35 @@ func (db *DBModel) CreateDestiny(destiny Destiny) (*Destiny, error) {
 
 	return &newDestiny, nil
 }
+
+// GetDestiny return one destiny by id
+func (db *DBModel) GetDestiny(id int) (*Destiny, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT * FROM destinies WHERE id = $1`
+
+	row := db.DB.QueryRowContext(ctx, query, id)
+
+	destiny := &Destiny{}
+
+	err := row.Scan(
+		&destiny.ID,
+		&destiny.Name,
+		&destiny.Description,
+		&destiny.Rating,
+		&destiny.Image,
+		&destiny.CreatedAt,
+		&destiny.UpdatedAt,
+		&destiny.Category,
+	)
+	// cek if row is empty
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return destiny, nil
+}
