@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 )
@@ -184,4 +185,132 @@ func (db *DBModel) GetDestiny(id int) (*Destiny, error) {
 		return nil, err
 	}
 	return destiny, nil
+}
+
+// GetAllDestinies returns all destinies
+func (db *DBModel) GetAllDestinies() ([]*Destiny, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT * FROM destinies`
+	rows, err := db.DB.QueryContext(ctx, query)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	destinies := []*Destiny{}
+	for rows.Next() {
+		destiny := &Destiny{}
+		err := rows.Scan(
+			&destiny.ID,
+			&destiny.Name,
+			&destiny.Description,
+			&destiny.Rating,
+			&destiny.Image,
+			&destiny.CreatedAt,
+			&destiny.UpdatedAt,
+			&destiny.Category,
+		)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		destinies = append(destinies, destiny)
+	}
+
+	return destinies, nil
+}
+
+// UpdateDestiny updates a destiny
+func (db *DBModel) UpdateDestiny(id int, destiny Destiny) (*Destiny, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	sqlStatement := `UPDATE destinies SET name = $1, description = $2, rating = $3, image = $4, updated_at = $5, category = $6 WHERE id = $7 RETURNING *`
+
+	row := db.DB.QueryRowContext(ctx, sqlStatement,
+		destiny.Name,
+		destiny.Description,
+		destiny.Rating,
+		destiny.Image,
+		destiny.UpdatedAt,
+		destiny.Category,
+		id,
+	)
+
+	var newDestiny Destiny
+	err := row.Scan(
+		&newDestiny.ID,
+		&newDestiny.Name,
+		&newDestiny.Description,
+		&newDestiny.Rating,
+		&newDestiny.Image,
+		&newDestiny.CreatedAt,
+		&newDestiny.UpdatedAt,
+		&newDestiny.Category,
+	)
+
+	if err == sql.ErrNoRows {
+		fmt.Println("Destiny not found", id)
+		return nil, nil
+	}
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &newDestiny, nil
+}
+
+// DeleteDestiny deletes a destiny
+func (db *DBModel) DeleteDestiny(id int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	sqlStatement := `DELETE FROM destinies WHERE id = $1`
+
+	_, err := db.DB.ExecContext(ctx, sqlStatement, id)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+// GetDestiniesByCategory returns all destinies by category
+func (db *DBModel) GetDestiniesByCategory(category string) ([]*Destiny, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT * FROM destinies WHERE category = $1`
+	rows, err := db.DB.QueryContext(ctx, query, category)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	destinies := []*Destiny{}
+	for rows.Next() {
+		destiny := &Destiny{}
+		err := rows.Scan(
+			&destiny.ID,
+			&destiny.Name,
+			&destiny.Description,
+			&destiny.Rating,
+			&destiny.Image,
+			&destiny.CreatedAt,
+			&destiny.UpdatedAt,
+			&destiny.Category,
+		)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		destinies = append(destinies, destiny)
+	}
+
+	return destinies, nil
 }

@@ -24,7 +24,6 @@ type DestinyResponse struct {
 
 // createDestinyHandler is a handler for the createDestiny function.
 func (app *application) createDestinyHandler(w http.ResponseWriter, r *http.Request) {
-
 	if err := r.ParseMultipartForm(1024); err != nil {
 		app.errorJSON(w, err, http.StatusInternalServerError)
 		return
@@ -118,4 +117,100 @@ func (app *application) getDestiny(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.writeJSON(w, http.StatusOK, destiny, "destiny")
+}
+
+// getAllDestiny is handler for get all destyny
+func (app *application) getAllDestiny(w http.ResponseWriter, r *http.Request) {
+	destiny, err := app.models.DB.GetAllDestinies()
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+	}
+
+	app.writeJSON(w, http.StatusOK, destiny, "destiny")
+}
+
+// updateDestiny is handler for update one destyny by id
+func (app *application) updateDestiny(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	params := ctx.Value("allParams")
+
+	param := params.(httprouter.Params) // assert type
+	id, err := strconv.Atoi(param.ByName("id"))
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	if err := r.ParseMultipartForm(1024); err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	name := r.FormValue("name")
+	description := r.FormValue("description")
+	category := r.FormValue("category")
+	rating, err := strconv.ParseFloat((r.FormValue("rating")), 64)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	uploadedImage, header, err := r.FormFile("image")
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	defer uploadedImage.Close()
+
+	dir, err := os.Getwd()
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	filename := header.Filename
+	if name != "" {
+		filename = fmt.Sprintf("%s%s", name, filepath.Ext(header.Filename))
+	}
+
+	fileLocation := filepath.Join(dir, "images", filename)
+	targetFile, err := os.OpenFile(fileLocation, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	defer targetFile.Close()
+
+	if _, err := io.Copy(targetFile, uploadedImage); err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	var destiny models.Destiny
+
+	destiny.Name = name
+	destiny.Description = description
+	destiny.Rating = rating
+	destiny.Image = filename
+	destiny.UpdatedAt = time.Now()
+	destiny.Category = category
+
+	updatedDestiny, err := app.models.DB.UpdateDestiny(id, destiny)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	//return destiny as destinyResponse
+	destinyResponse := DestinyResponse{
+		ID:          updatedDestiny.ID,
+		Name:        updatedDestiny.Name,
+		Description: updatedDestiny.Description,
+		Rating:      updatedDestiny.Rating,
+		Images:      updatedDestiny.Image,
+		Category:    updatedDestiny.Category,
+	}
+
+	// return the user
+	app.writeJSON(w, http.StatusOK, destinyResponse, "destiny")
 }
