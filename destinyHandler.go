@@ -214,3 +214,23 @@ func (app *application) updateDestiny(w http.ResponseWriter, r *http.Request) {
 	// return the user
 	app.writeJSON(w, http.StatusOK, destinyResponse, "destiny")
 }
+
+// popularDestiny is handler for get most popular destiny
+func (app *application) popularDestiny(w http.ResponseWriter, r *http.Request) {
+	destiny, err := app.models.DB.GetPopularDestinies()
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+	}
+
+	app.writeJSON(w, http.StatusOK, destiny, "destiny")
+}
+
+// latestDestiny is handler for get latest destiny
+func (app *application) latestDestiny(w http.ResponseWriter, r *http.Request) {
+	destiny, err := app.models.DB.GetLatestDestinies()
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+	}
+
+	app.writeJSON(w, http.StatusOK, destiny, "destiny")
+}

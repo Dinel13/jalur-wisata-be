@@ -32,6 +32,8 @@ func (app *application) routes() http.Handler {
 
 	r.HandlerFunc(http.MethodGet, "/v1/destiny/:id", app.getDestiny)
 	r.HandlerFunc(http.MethodGet, "/v1/destinies", app.getAllDestiny)
+	r.HandlerFunc(http.MethodGet, "/v1/pop-destinies", app.popularDestiny)
+	r.HandlerFunc(http.MethodGet, "/v1/latest-destinies", app.latestDestiny)
 
 	// r.HandlerFunc(http.MethodDelete, "/v1/destiny/:id", app.deleteDestiny)
 

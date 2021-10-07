@@ -314,3 +314,73 @@ func (db *DBModel) GetDestiniesByCategory(category string) ([]*Destiny, error) {
 
 	return destinies, nil
 }
+
+// GetPOpularDestinies returns most popular destinies
+func (db *DBModel) GetPopularDestinies() ([]*Destiny, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT * FROM destinies ORDER BY rating DESC LIMIT 8`
+	rows, err := db.DB.QueryContext(ctx, query)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	destinies := []*Destiny{}
+	for rows.Next() {
+		destiny := &Destiny{}
+		err := rows.Scan(
+			&destiny.ID,
+			&destiny.Name,
+			&destiny.Description,
+			&destiny.Rating,
+			&destiny.Image,
+			&destiny.CreatedAt,
+			&destiny.UpdatedAt,
+			&destiny.Category,
+		)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		destinies = append(destinies, destiny)
+	}
+
+	return destinies, nil
+}
+
+// GetLatestDestinies returns latest destinies
+func (db *DBModel) GetLatestDestinies() ([]*Destiny, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT * FROM destinies ORDER BY created_at DESC LIMIT 8`
+	rows, err := db.DB.QueryContext(ctx, query)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	destinies := []*Destiny{}
+	for rows.Next() {
+		destiny := &Destiny{}
+		err := rows.Scan(
+			&destiny.ID,
+			&destiny.Name,
+			&destiny.Description,
+			&destiny.Rating,
+			&destiny.Image,
+			&destiny.CreatedAt,
+			&destiny.UpdatedAt,
+			&destiny.Category,
+		)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		destinies = append(destinies, destiny)
+	}
+
+	return destinies, nil
+}
