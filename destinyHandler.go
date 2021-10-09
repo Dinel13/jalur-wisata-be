@@ -101,6 +101,84 @@ func (app *application) createDestinyHandler(w http.ResponseWriter, r *http.Requ
 	app.writeJSON(w, http.StatusOK, destinyResponse, "destiny")
 }
 
+// createDestiny is a handler for the createDestiny function.
+// this use new scema to upload file
+func (app *application) createDestiny(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(1024); err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	name := r.FormValue("name")
+	description := r.FormValue("description")
+	category := r.FormValue("category")
+	rating, err := strconv.ParseFloat((r.FormValue("rating")), 64)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println(rating)
+	uploadedImage, header, err := r.FormFile("image")
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	defer uploadedImage.Close()
+
+	// Create the uploads folder if it doesn't
+	// already exist
+	err = os.MkdirAll("./assets", os.ModePerm)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create a new file in the uploads directory
+	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(header.Filename))
+	dst, err := os.Create(fmt.Sprintf("./assets/%s", filename))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, uploadedImage); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var destiny models.Destiny
+
+	destiny.Name = name
+	destiny.Description = description
+	destiny.Rating = rating
+	destiny.Image = filename
+	destiny.CreatedAt = time.Now()
+	destiny.UpdatedAt = time.Now()
+	destiny.Category = category
+
+	newDestiny, err := app.models.DB.CreateDestiny(destiny)
+	if err != nil {
+		app.errorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	//return destiny as destinyResponse
+	destinyResponse := DestinyResponse{
+		ID:          newDestiny.ID,
+		Name:        newDestiny.Name,
+		Description: newDestiny.Description,
+		Rating:      newDestiny.Rating,
+		Images:      newDestiny.Image,
+		Category:    newDestiny.Category,
+	}
+
+	// return the user
+	app.writeJSON(w, http.StatusOK, destinyResponse, "destiny")
+}
+
 // getDestiny is handler for get one destyny by id
 func (app *application) getDestiny(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())

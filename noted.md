@@ -8,3 +8,20 @@ passing value from params url harus ewat context
 jadi params di ambil dari context 
 lalu di essert jadi httpROuter.params
 baru getName
+
+
+nano /lib/systemd/system/goapp.service
+
+[Unit]
+Description=simple go application
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/path/to/binary/file
+
+[Install]
+WantedBy=multi-user.target
+
+service goapp start
