@@ -27,8 +27,8 @@ func (app *application) routes() http.Handler {
 	r.HandlerFunc(http.MethodPost, "/v1/signup", app.userSignup)
 	r.HandlerFunc(http.MethodPost, "/v1/login", app.userLogin)
 
-	// r.POST("/v1/destiny", app.wrap(secure.ThenFunc(app.createDestinyHandler)))
-	r.POST("/v1/destiny", app.wrap(secure.ThenFunc(app.createDestiny)))
+	r.POST("/v1/destiny", app.wrap(secure.ThenFunc(app.createDestinyHandler)))
+	// r.POST("/v1/destiny", app.wrap(secure.ThenFunc(app.createDestiny)))
 	r.POST("/v1/destiny/:id", app.wrap(secure.ThenFunc(app.updateDestiny)))
 
 	r.HandlerFunc(http.MethodGet, "/v1/destiny/:id", app.getDestiny)

@@ -38,35 +38,41 @@ func (app *application) createDestinyHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	fmt.Println(rating)
+	fmt.Println(rating, name, description, category)
 
 	uploadedImage, header, err := r.FormFile("image")
 	if err != nil {
+		fmt.Println(err)
 		app.errorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
 	defer uploadedImage.Close()
 
 	dir, err := os.Getwd()
+	fmt.Println(dir)
 	if err != nil {
+		fmt.Println(err)
 		app.errorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	filename := header.Filename
 	if name != "" {
+		fmt.Println(err)
 		filename = fmt.Sprintf("%s%s", name, filepath.Ext(header.Filename))
 	}
 
 	fileLocation := filepath.Join(dir, "images", filename)
 	targetFile, err := os.OpenFile(fileLocation, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer targetFile.Close()
 
 	if _, err := io.Copy(targetFile, uploadedImage); err != nil {
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -144,6 +150,7 @@ func (app *application) createDestiny(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	fmt.Println(dst)
 
 	defer dst.Close()
 
