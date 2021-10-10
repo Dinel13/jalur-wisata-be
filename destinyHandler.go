@@ -108,7 +108,7 @@ func (app *application) createDestiny(w http.ResponseWriter, r *http.Request) {
 		app.errorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
-
+	fmt.Println("buat destiny")
 	name := r.FormValue("name")
 	description := r.FormValue("description")
 	category := r.FormValue("category")
