@@ -56,9 +56,14 @@ func (app *application) createDestinyHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	if dir != "/home/din/project/jalur-wisata/backend" {
+		dir = "/var/www/wisata"
+	}
+
+	fmt.Println(dir)
+
 	filename := header.Filename
 	if name != "" {
-		fmt.Println(err)
 		filename = fmt.Sprintf("%s%s", name, filepath.Ext(header.Filename))
 	}
 
