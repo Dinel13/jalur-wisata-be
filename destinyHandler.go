@@ -118,9 +118,10 @@ func (app *application) createDestiny(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(rating)
+	fmt.Println(rating, name, description, category)
 	uploadedImage, header, err := r.FormFile("image")
 	if err != nil {
+		fmt.Println(err)
 		app.errorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -130,6 +131,7 @@ func (app *application) createDestiny(w http.ResponseWriter, r *http.Request) {
 	// already exist
 	err = os.MkdirAll("./assets", os.ModePerm)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -138,6 +140,7 @@ func (app *application) createDestiny(w http.ResponseWriter, r *http.Request) {
 	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(header.Filename))
 	dst, err := os.Create(fmt.Sprintf("./assets/%s", filename))
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
