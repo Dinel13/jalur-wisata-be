@@ -25,3 +25,17 @@ ExecStart=/path/to/binary/file
 WantedBy=multi-user.target
 
 service goapp start
+
+
+eror di file upload karena pada saat di server os.getwd() meretutn
+/ bukan lokasi project ini
+
+tidak bisa akses file static karena di cofigurasi nginx
+harus ada /image yang mengarah ke lokasi file
+location /images {
+   alias /var/www/project/assets 
+}
+alias digunakan karena location link dan file berbeda
+
+
+
